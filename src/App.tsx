@@ -5,7 +5,7 @@ import { Podcast } from './types/podcast';
 import { Card } from 'primereact/card';
 import { Avatar } from 'primereact/avatar';
 import { Link } from 'react-router-dom';
-import { resetPodcastDetail } from './store/slices';
+import { ProgressSpinner } from 'primereact/progressspinner';
 
 const linkStyle: CSSProperties = {
   textDecoration: 'none',
@@ -16,29 +16,25 @@ const linkStyle: CSSProperties = {
 export const App = (): JSX.Element => {
   const dispatch = useDispatch();
 
-  const { loading, items } = useSelector((state: any) => state.podcasts);
-  const { podcastDetail } = useSelector((state: any) => state.podcast);
+  const { loadingList, items } = useSelector((state: any) => state.podcasts);
 
   useEffect(() => {
     dispatch(getPodcasts());
-    if(podcastDetail) {
-      dispatch(resetPodcastDetail());
-    }
   }, [])
   
 
   return (
     <div className="App">
       {
-        loading && <h1>Loading...</h1>
+        loadingList && <ProgressSpinner />
       }
 
       {
-        !loading && items.length <= 0 && <h1>Items not found 😢</h1>
+        !loadingList && items.length <= 0 && <h1>Items not found 😢</h1>
       }
 
       {
-        !loading && items.length > 0 && 
+        !loadingList && items.length > 0 && 
         <div className='grid flex flex-wrap align-items-stretch row-gap-1'>
           {items.map((podcast: Podcast, index: number) => (
             <Link

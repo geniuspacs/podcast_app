@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { PodcastSliceState } from "../../types/podcast";
 
 const initialState: PodcastSliceState = {
-    loading: false,
+    loadingList: false,
     items: []
 };
 
@@ -10,19 +10,19 @@ export const PodcastSlice = createSlice({
     name: 'Podcast',
     initialState,
     reducers: {
-        startLoadingList: (state) => ({
+        startLoading: (state) => ({
             ...state,
-            loading: true
+            loadingList: true
         }),
-        stopLoadingList: (state) => ({
+        stopLoading: (state) => ({
             ...state,
-            loading: false
+            loadingList: false
         }),
         setPodcastList: (state, action) => ({
             ...state,
             items: action.payload.podcasts
-        }),
+        })
     }
 });
 
-export const { startLoadingList, stopLoadingList, setPodcastList } = PodcastSlice.actions;
+export const { startLoading, stopLoading, setPodcastList } = PodcastSlice.actions;

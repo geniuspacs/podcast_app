@@ -1,7 +1,7 @@
 import axios from "axios";
-import { Podcast } from "../../types/podcast";
+import { Podcast, PodcastDetailType, PodcastEpisode } from "../../types/podcast";
 import { setError, setPodcastDetail, startLoadingPodcastDetail, stopLoadingPodcastDetail } from "./podcast_detail_slice";
-import { setPodcastList, startLoadingList, stopLoadingList } from "./podcast_slice";
+import { setPodcastList, startLoading, stopLoading } from "./podcast_slice";
 
 export const getPodcasts = (): any => {
     return async(dispatch: any, getState: Function) => {
@@ -10,7 +10,7 @@ export const getPodcasts = (): any => {
         const {items} = podcasts;
 
         if(!items || items.length <= 0) {
-            dispatch(startLoadingList());
+            dispatch(startLoading());
 
             const {data} = await axios.get(import.meta.env.VITE_PODCAST_LIST_URL);
 
@@ -24,34 +24,45 @@ export const getPodcasts = (): any => {
                 }))
             }));
             
-            dispatch(stopLoadingList());
+            dispatch(stopLoading());
         }
     }
 };
 
 export const getPodcastDetail = (id: string): any => {
     return async(dispatch: any, getState: Function) => {
-        const {podcast} = getState();
+        const {podcastDetail} = getState();
+        const {podcastViewed} = podcastDetail;
 
-        const {podcastDetail} = podcast;
+        const itemSelected = podcastViewed.find((podcast: PodcastDetailType) => podcast.id === id);
 
-        if(!podcastDetail) {
+        if(!itemSelected) {
             dispatch(startLoadingPodcastDetail());
 
             try {
                 const { data } = await axios.get(import.meta.env.VITE_PODCAST_DETAIL_BASE, {
                     params: {
-                        url: `${import.meta.env.VITE_PODCAST_DETAIL}?id=${id}&media=podcast&entity=podcastEpisode&limit=100`
+                        url: `${import.meta.env.VITE_PODCAST_DETAIL}?id=${id}&media=podcast&entity=podcastEpisode&limit=200`
                     },
                     headers: {
                         'Content-Type': 'application/json',
                     }
                 });
-
+                
                 dispatch(setPodcastDetail({
-                    podcast: {
-                        podcast: data.results
-                    }
+                    id,
+                    episodes: data.results
+                        .filter((podc: any) => podc.kind === 'podcast-episode')
+                        .map((episode: any): PodcastEpisode => (
+                            {
+                                id: episode.trackId,
+                                title: episode.trackName,
+                                date: episode.releaseDate,
+                                duration: episode.trackTimeMillis
+                            }
+                        )
+                    ),
+                    episodesNumber: data.resultCount - 1
                 }));
             } catch (error) {
                 dispatch(setError({error}))

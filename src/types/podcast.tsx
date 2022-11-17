@@ -6,13 +6,28 @@ export interface Podcast {
     author: string;
 }
 
+export interface PodcastEpisode {
+    id: string;
+    title: string;
+    date: string;
+    duration: string;
+}
+
+export interface PodcastDetailType {
+    id: string;
+    summary: string;
+    episodes?: PodcastEpisode[];
+    episodesNumber?: number;
+    lastView?: Date;
+}
+
 export interface PodcastSliceState {
-    loading: boolean;
+    loadingList: boolean;
     items: Podcast[];
+    error?: string;
 }
 
 export interface PodcastDetailSliceState {
-    loading: boolean;
-    podcastDetail: Podcast | null[];
-    error?: string;
+    loadingDetail: boolean;
+    podcastViewed: PodcastDetailType[]
 }
