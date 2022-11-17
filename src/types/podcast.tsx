@@ -16,7 +16,7 @@ export interface PodcastDetailType {
     summary: string;
     episodes?: PodcastEpisode[];
     episodesNumber?: number;
-    lastView?: Date;
+    lastView?: string;
 }
 
 export interface PodcastEpisode {

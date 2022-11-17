@@ -7,6 +7,7 @@ import { Link, Outlet } from 'react-router-dom';
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { PodcastListProvider } from './providers/PodcastListProvider';
 import axios from 'axios';
+import './App.css';
 
 export const App = (): JSX.Element => {
 

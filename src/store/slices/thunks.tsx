@@ -1,5 +1,6 @@
 import axios from "axios";
-import { Podcast, PodcastEpisode } from "../../types/podcast";
+import moment from "moment";
+import { Podcast, PodcastDetailType, PodcastEpisode } from "../../types/podcast";
 import { setError, setSelectedPodcast, startLoading, stopLoading } from "./podcast_slice";
 
 export const getPodcastDetail = (id: string): any => {
@@ -8,10 +9,9 @@ export const getPodcastDetail = (id: string): any => {
 
         const {podcasts} = details;
 
-        const existingPodcast = podcasts.find((podcast: Podcast) => podcast.id === id);
-        
+        const existingPodcast: PodcastDetailType = podcasts.find((podcast: PodcastDetailType) => podcast.id === id);
 
-        if(!existingPodcast) {
+        if(!existingPodcast || moment(existingPodcast.lastView, 'DD/MM/yyyy').diff(moment().format('DD/MM/yyyy'), 'days') !== 0) {
             dispatch(startLoading());
 
             try {
@@ -41,7 +41,8 @@ export const getPodcastDetail = (id: string): any => {
                             }
                         )
                     ),
-                    episodesNumber: data.resultCount - 1
+                    episodesNumber: data.resultCount - 1,
+                    lastView: moment().format('DD/MM/yyyy')
                 }));
             } catch (error) {
                 dispatch(setError({error}))
