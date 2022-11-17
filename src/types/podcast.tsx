@@ -8,11 +8,24 @@ export interface Podcast {
 
 export interface PodcastSliceState {
     loading: boolean;
-    items: Podcast[];
+    podcasts: Podcast[];
 }
 
-export interface PodcastDetailSliceState {
-    loading: boolean;
-    podcastDetail: Podcast | null[];
-    error?: string;
+export interface PodcastDetailType {
+    id: string;
+    summary: string;
+    episodes?: PodcastEpisode[];
+    episodesNumber?: number;
+    lastView?: Date;
+}
+
+export interface PodcastEpisode {
+    id: number;
+    title: string;
+    date: string;
+    duration: string;
+    description: string;
+    shortDescription: string;
+    episodeUrl: string;
+    episodeFileExtension: string;
 }

@@ -1,42 +1,18 @@
 import axios from "axios";
-import { Podcast } from "../../types/podcast";
-import { setError, setPodcastDetail, startLoadingPodcastDetail, stopLoadingPodcastDetail } from "./podcast_detail_slice";
-import { setPodcastList, startLoadingList, stopLoadingList } from "./podcast_slice";
-
-export const getPodcasts = (): any => {
-    return async(dispatch: any, getState: Function) => {
-
-        const {podcasts} = getState();
-        const {items} = podcasts;
-
-        if(!items || items.length <= 0) {
-            dispatch(startLoadingList());
-
-            const {data} = await axios.get(import.meta.env.VITE_PODCAST_LIST_URL);
-
-            dispatch(setPodcastList({
-                podcasts: data.feed.entry.map((podcast: any): Podcast => ({
-                    id: podcast.id.attributes['im:id'],
-                    title: podcast.title.label,
-                    summary: podcast.summary.label,
-                    img: podcast['im:image'][podcast['im:image'].length-1].label,
-                    author: podcast['im:artist'].label
-                }))
-            }));
-            
-            dispatch(stopLoadingList());
-        }
-    }
-};
+import { Podcast, PodcastEpisode } from "../../types/podcast";
+import { setError, setSelectedPodcast, startLoading, stopLoading } from "./podcast_slice";
 
 export const getPodcastDetail = (id: string): any => {
     return async(dispatch: any, getState: Function) => {
-        const {podcast} = getState();
+        const {details} = getState();
 
-        const {podcastDetail} = podcast;
+        const {podcasts} = details;
 
-        if(!podcastDetail) {
-            dispatch(startLoadingPodcastDetail());
+        const existingPodcast = podcasts.find((podcast: Podcast) => podcast.id === id);
+        
+
+        if(!existingPodcast) {
+            dispatch(startLoading());
 
             try {
                 const { data } = await axios.get(import.meta.env.VITE_PODCAST_DETAIL_BASE, {
@@ -48,16 +24,30 @@ export const getPodcastDetail = (id: string): any => {
                     }
                 });
 
-                dispatch(setPodcastDetail({
-                    podcast: {
-                        podcast: data.results
-                    }
+                dispatch(setSelectedPodcast({
+                    id,
+                    episodes: data.results
+                        .filter((podc: any) => podc.kind === 'podcast-episode')
+                        .map((episode: any): PodcastEpisode => (
+                            {
+                                id: episode.trackId,
+                                title: episode.trackName,
+                                date: episode.releaseDate,
+                                duration: episode.trackTimeMillis,
+                                description: episode.description,
+                                shortDescription: episode.shortDescription,
+                                episodeUrl: episode.episodeUrl,
+                                episodeFileExtension: episode.episodeFileExtension
+                            }
+                        )
+                    ),
+                    episodesNumber: data.resultCount - 1
                 }));
             } catch (error) {
                 dispatch(setError({error}))
             }
 
-            dispatch(stopLoadingPodcastDetail());
+            dispatch(stopLoading());
         }
     }
 }

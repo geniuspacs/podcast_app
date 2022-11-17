@@ -1,68 +1,57 @@
 import { CSSProperties, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { getPodcasts } from './store/slices/thunks';
 import { Podcast } from './types/podcast';
 import { Card } from 'primereact/card';
 import { Avatar } from 'primereact/avatar';
-import { Link } from 'react-router-dom';
-import { resetPodcastDetail } from './store/slices';
-
-const linkStyle: CSSProperties = {
-  textDecoration: 'none',
-  position: 'relative',
-  textAlign: 'center'
-}
+import { Link, Outlet } from 'react-router-dom';
+import { ProgressSpinner } from 'primereact/progressspinner'
+import { PodcastListProvider } from './providers/PodcastListProvider';
+import axios from 'axios';
 
 export const App = (): JSX.Element => {
-  const dispatch = useDispatch();
 
-  const { loading, items } = useSelector((state: any) => state.podcasts);
-  const { podcastDetail } = useSelector((state: any) => state.podcast);
+  const [podcastList, setPodcastList] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+
+  const getPodcastList = async() => {
+    setLoading(true);
+    
+    const {data} = await axios.get(import.meta.env.VITE_PODCAST_LIST_URL);
+
+    const podcastListFromApi = data.feed.entry.map((podcast: any): Podcast => ({
+      id: podcast.id.attributes['im:id'],
+      title: podcast.title.label,
+      summary: podcast.summary.label,
+      img: podcast['im:image'][podcast['im:image'].length-1].label,
+      author: podcast['im:artist'].label
+    }))
+
+    setPodcastList(podcastListFromApi);
+    setLoading(false);
+  }
 
   useEffect(() => {
-    dispatch(getPodcasts());
-    if(podcastDetail) {
-      dispatch(resetPodcastDetail());
+    if(!podcastList || podcastList.length <= 0) {
+      getPodcastList();
     }
-  }, [])
-  
+
+  }, []);
 
   return (
-    <div className="App">
+    <PodcastListProvider.Provider value={{
+      loading,
+      podcastList,
+      setLoading
+    }}>
       {
-        loading && <h1>Loading...</h1>
+        loading && <ProgressSpinner />
       }
-
       {
-        !loading && items.length <= 0 && <h1>Items not found 😢</h1>
+        !loading && <Outlet />
       }
-
-      {
-        !loading && items.length > 0 && 
-        <div className='grid flex flex-wrap align-items-stretch row-gap-1'>
-          {items.map((podcast: Podcast, index: number) => (
-            <Link
-            key={index}
-            to={`podcast/${podcast.id}`}
-            style={linkStyle} className="col md:col-3 align-items-stretch">
-              <Card>
-                <div className="p-card-title col" style={{fontSize: '1rem', textAlign: 'center'}}>
-                  <Avatar image={podcast.img} size='xlarge' shape='circle' />
-                  <div>
-                    {podcast.title}
-                  </div>
-                </div>
-
-                <div className="p-card-subtitle">
-                  {podcast.author}
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      }
-    </div>
-  )
+    </PodcastListProvider.Provider>
+  );
 }
 
 export default App

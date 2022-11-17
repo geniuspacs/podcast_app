@@ -1,30 +1,39 @@
-import React, { useEffect } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { Card } from 'primereact/card'
 import { useDispatch, useSelector } from 'react-redux'
+import { Outlet, useParams } from 'react-router-dom';
+import { Podcast, PodcastDetailType } from '../types/podcast';
+import { EpisodesList, LeftHeaderPanel } from '../components';
+import { PodcastListProvider } from '../providers/PodcastListProvider';
 import { getPodcastDetail } from '../store/slices/thunks';
-import { useParams } from 'react-router-dom';
+
 export const PodcastDetail = (): JSX.Element => {
+
+    const { podcastId } = useParams();
 
     const dispatch = useDispatch();
 
-    const {loading, podcastDetail} = useSelector((state: any) => state.podcast);
-
-    const { podcastId } = useParams();
+    const { podcastList } = useContext(PodcastListProvider);
 
     useEffect(() => {
         if(podcastId) {
             dispatch(getPodcastDetail(podcastId));
         }
-    }, [podcastId])
-    
+    }, [podcastId]);
 
   return (
     <div className='grid'>
-        <div className="col-2 offset-3">
-            <Card>
-                {/* {podcastDetail} */}
-            </Card>
+        {
+            podcastList?.find((it: Podcast) => it.id === podcastId) && 
+            <div className="col-12 md:col-4">
+                <Card header={<LeftHeaderPanel podcast={podcastList.find((it: Podcast) => it.id === podcastId)} />}></Card>
+            </div>
+        }
+
+        <div className="col-12 md:col-8">
+            <Outlet />
         </div>
+
     </div>
   )
 }
